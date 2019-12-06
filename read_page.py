@@ -22,10 +22,11 @@ def geturl(url):
     # 请求详细页面
     r = requests.get(url, headers=headers)
     # 改编码
-    r.encoding = "GB2312"
+    r.encoding = "utf8"
     soup = BeautifulSoup(r.text, "html.parser")
+    # print(soup)
     # 找出类名为 info-zi mb15 下的所有p标签
-    ans = soup.find_all(["p", ".info-zi mb15"])
+    ans = soup.find_all(["h1", "._3FrNV7v _12_uzrS E6m4BZb"])
     # 用来储存最后需要写入文件的字符串
     mlist = ""
     for tag in ans:
@@ -38,30 +39,39 @@ def geturl(url):
 # 获取目标网址第几页
 def getalldoc(ii):
     # 字符串拼接成目标网址
-    testurl = "https://www.zhiliti.com.cn/html/luoji/list7_" + str(ii) + ".html"
+    testurl = "https://www.seek.co.nz/job/40379797"
     # 使用request去get目标网址
     res = requests.get(testurl, headers=headers)
     # 更改网页编码--------不改会乱码
-    res.encoding = "GB2312"
+    res.encoding = "utf8"
     # 创建一个BeautifulSoup对象
+    # print(res.text)
     soup = BeautifulSoup(res.text, "html.parser")
     # 找出目标网址中所有的small标签
     # 函数返回的是一个list
-    ans = soup.find_all("small")
+    ans = soup.find_all(["h1", "._3FrNV7v _12_uzrS E6m4BZb"])
+
+    company = soup.find_all(["span", "._3FrNV7v _2QG7TNq E6m4BZb"])
+
     # 用于标识问题
     cnt = 1
     # 先创建目录
     mkdir("D:\\Python爬取的文件\\问题\\第" + str(ii) + "页\\")
     for tag in ans:
+        print("-------------------------------------")
+        print(tag);
         # 获取a标签下的href网址
-        string_ans = str(tag.a.get("href"))
-        # 请求详细页面
-        # 返回我们需要的字符串数据
-        string_write = geturl(string_ans)
-        # 写文件到磁盘
-        writedoc(string_write, cnt, ii)
-        cnt = cnt + 1
+        # string_ans = str(tag.a.get("span"))
+        # # 请求详细页面
+        # # 返回我们需要的字符串数据
+        # string_write = geturl(string_ans)
+        # # 写文件到磁盘
+        # writedoc(string_write, cnt, ii)
+        # cnt = cnt + 1
     print("第", ii, "页写入完成")
+    for tag in company:
+        print("-------------------------------------")
+        print(tag);
 
 
 def mkdir(path):
@@ -85,7 +95,7 @@ def mkdir(path):
 
 
 def getall():
-    for i in range(1, 31, 1):
+    for i in range(1, 2, 1):
         getalldoc(i)
 
 
