@@ -39,7 +39,7 @@ def geturl(url):
 # 获取目标网址第几页
 def getalldoc(ii):
     # 字符串拼接成目标网址
-    testurl = "https://www.seek.co.nz/job/40379797"
+    testurl = "https://www.seek.co.nz/job/40700523"
     # 使用request去get目标网址
     res = requests.get(testurl, headers=headers)
     # 更改网页编码--------不改会乱码
@@ -49,29 +49,34 @@ def getalldoc(ii):
     soup = BeautifulSoup(res.text, "html.parser")
     # 找出目标网址中所有的small标签
     # 函数返回的是一个list
-    ans = soup.find_all(["h1", "._3FrNV7v _12_uzrS E6m4BZb"])
-
-    company = soup.find_all(["span", "._3FrNV7v _2QG7TNq E6m4BZb"])
+    print(soup)
+    title = soup.findAll('h1', {'class': 'jobtitle'})
+    area = soup.findAll('script', {'data-automation': 'server-state'})
+    print(area[0].string)
+    print(title[0].string)
+    # ans = soup.find_all(["h1", "._3FrNV7v _12_uzrS E6m4BZb "])
+    #
+    # company = soup.find_all(["span", "._3FrNV7v _2QG7TNq E6m4BZb"])
 
     # 用于标识问题
     cnt = 1
     # 先创建目录
-    mkdir("D:\\Python爬取的文件\\问题\\第" + str(ii) + "页\\")
-    for tag in ans:
-        print("-------------------------------------")
-        print(tag);
-        # 获取a标签下的href网址
-        # string_ans = str(tag.a.get("span"))
-        # # 请求详细页面
-        # # 返回我们需要的字符串数据
-        # string_write = geturl(string_ans)
-        # # 写文件到磁盘
-        # writedoc(string_write, cnt, ii)
-        # cnt = cnt + 1
-    print("第", ii, "页写入完成")
-    for tag in company:
-        print("-------------------------------------")
-        print(tag);
+    # mkdir("D:\\Python爬取的文件\\问题\\第" + str(ii) + "页\\")
+    # for tag in ans:
+    #     print("-------------------------------------")
+    #     print(tag);
+    # 获取a标签下的href网址
+    # string_ans = str(tag.a.get("span"))
+    # # 请求详细页面
+    # # 返回我们需要的字符串数据
+    # string_write = geturl(string_ans)
+    # # 写文件到磁盘
+    # writedoc(string_write, cnt, ii)
+    # cnt = cnt + 1
+    # print("第", ii, "页写入完成")
+    # for tag in company:
+    #     print("-------------------------------------")
+    #     print(tag);
 
 
 def mkdir(path):
