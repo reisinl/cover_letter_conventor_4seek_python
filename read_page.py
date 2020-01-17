@@ -1,11 +1,17 @@
+import json
 import os
+import re
+from datetime import datetime
 
 import requests
+import timestring as timestring
 from bs4 import BeautifulSoup
 
 # 服务器反爬虫机制会判断客户端请求头中的User-Agent是否来源于真实浏览器，所以，我们使用Requests经常会指定UA伪装成浏览器发起请求
 headers = {'user-agent': 'Mozilla/5.0'}
 
+
+# https://www.jianshu.com/p/0467fb4c9317
 
 # 写文件
 def writedoc(ss, i, ii):
@@ -15,6 +21,16 @@ def writedoc(ss, i, ii):
         # 写文件
         f.write(ss)
     print("问题" + str(i) + "文件写入完成" + "\n")
+
+
+# def replace_text(old_text, new_text):
+#     for p in doc.paragraphs:
+#         if old_text in p.text:
+#             inline = p.runs
+#             for i in inline:
+#                 if old_text in i.text:
+#                     text = i.text.replace(old_text, new_text)
+#                     i.text = text
 
 
 # 根据详细页面url获取目标字符串
@@ -43,20 +59,31 @@ def getalldoc(ii):
     # 使用request去get目标网址
     res = requests.get(testurl, headers=headers)
     # 更改网页编码--------不改会乱码
-    res.encoding = "utf8"
+    res.encoding = "utf-8"
     # 创建一个BeautifulSoup对象
     # print(res.text)
     soup = BeautifulSoup(res.text, "html.parser")
     # 找出目标网址中所有的small标签
     # 函数返回的是一个list
-    print(soup)
-    title = soup.findAll('h1', {'class': 'jobtitle'})
-    area = soup.findAll('script', {'data-automation': 'server-state'})
-    print(area[0].string)
-    print(title[0].string)
-    # ans = soup.find_all(["h1", "._3FrNV7v _12_uzrS E6m4BZb "])
+    # print(soup)
+    pattern = re.compile(r"window.SK_DL = '(.*?)';$")
+    # bbb = soup.find("script", text=lambda text: text and "window.SK_DL = {" in text)
     #
-    # company = soup.find_all(["span", "._3FrNV7v _2QG7TNq E6m4BZb"])
+    # print(bbb.text.split("window.SK_DL = ")[1]);
+    # title = soup.findAll('h1', {'class': 'jobtitle'})
+    job = soup.find('script', {'data-automation': 'server-state'}).string
+    job_info = job.replace(r'\u002F', '/').replace('\n', '').split("window.SK_DL = ")[1]
+    quota_index = job_info.rfind(';');
+    print(job_info[:quota_index] + '');
+
+    job_object = json.loads(job_info[:quota_index] + '');
+    job_location = job_object['jobLocation']
+    job_area = job_object['jobArea']
+    job_title = job_object['jobTitle']
+    job_list_date = timestring.Date(job_object['jobListingDate'])
+    f = "%Y-%m-%dT%H:%M:%S.%fZ"
+    out = datetime.strptime(job_object['jobListingDate'], f)
+    job_date = out.strftime("%d %b %Y")
 
     # 用于标识问题
     cnt = 1
