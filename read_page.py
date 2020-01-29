@@ -1,6 +1,5 @@
 import json
 import os
-import re
 from datetime import datetime
 
 import requests
@@ -11,46 +10,7 @@ from bs4 import BeautifulSoup
 headers = {'user-agent': 'Mozilla/5.0'}
 
 
-# https://www.jianshu.com/p/0467fb4c9317
-
-# 写文件
-def writedoc(ss, i, ii):
-    # 打开文件
-    # 编码为utf-8
-    with open("D:\\Python爬取的文件\\问题\\第" + str(ii) + "页\\" + "问题" + str(i) + ".txt", 'w', encoding='utf-8') as f:
-        # 写文件
-        f.write(ss)
-    print("问题" + str(i) + "文件写入完成" + "\n")
-
-
-# def replace_text(old_text, new_text):
-#     for p in doc.paragraphs:
-#         if old_text in p.text:
-#             inline = p.runs
-#             for i in inline:
-#                 if old_text in i.text:
-#                     text = i.text.replace(old_text, new_text)
-#                     i.text = text
-
-
-# 根据详细页面url获取目标字符串
-def geturl(url):
-    # 请求详细页面
-    r = requests.get(url, headers=headers)
-    # 改编码
-    r.encoding = "utf8"
-    soup = BeautifulSoup(r.text, "html.parser")
-    # print(soup)
-    # 找出类名为 info-zi mb15 下的所有p标签
-    ans = soup.find_all(["h1", "._3FrNV7v _12_uzrS E6m4BZb"])
-    # 用来储存最后需要写入文件的字符串
-    mlist = ""
-    for tag in ans:
-        # 获取p标签下的string内容，并进行目标字符串拼接
-        mlist = mlist + str(tag.string)
-    # 返回目标字符串
-    return mlist
-
+# https://zhuanlan.zhihu.com/p/90855359
 
 # 获取目标网址第几页
 def getalldoc(ii):
@@ -61,16 +21,8 @@ def getalldoc(ii):
     # 更改网页编码--------不改会乱码
     res.encoding = "utf-8"
     # 创建一个BeautifulSoup对象
-    # print(res.text)
     soup = BeautifulSoup(res.text, "html.parser")
-    # 找出目标网址中所有的small标签
-    # 函数返回的是一个list
-    # print(soup)
-    pattern = re.compile(r"window.SK_DL = '(.*?)';$")
-    # bbb = soup.find("script", text=lambda text: text and "window.SK_DL = {" in text)
-    #
-    # print(bbb.text.split("window.SK_DL = ")[1]);
-    # title = soup.findAll('h1', {'class': 'jobtitle'})
+
     job = soup.find('script', {'data-automation': 'server-state'}).string
     job_info = job.replace(r'\u002F', '/').replace('\n', '').split("window.SK_DL = ")[1]
     quota_index = job_info.rfind(';');
@@ -85,25 +37,7 @@ def getalldoc(ii):
     out = datetime.strptime(job_object['jobListingDate'], f)
     job_date = out.strftime("%d %b %Y")
 
-    # 用于标识问题
-    cnt = 1
-    # 先创建目录
-    # mkdir("D:\\Python爬取的文件\\问题\\第" + str(ii) + "页\\")
-    # for tag in ans:
-    #     print("-------------------------------------")
-    #     print(tag);
-    # 获取a标签下的href网址
-    # string_ans = str(tag.a.get("span"))
-    # # 请求详细页面
-    # # 返回我们需要的字符串数据
-    # string_write = geturl(string_ans)
-    # # 写文件到磁盘
-    # writedoc(string_write, cnt, ii)
-    # cnt = cnt + 1
-    # print("第", ii, "页写入完成")
-    # for tag in company:
-    #     print("-------------------------------------")
-    #     print(tag);
+
 
 
 def mkdir(path):
