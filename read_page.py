@@ -1,69 +1,89 @@
 import json
 import os
+import time
 from datetime import datetime
 
 import requests
 import timestring as timestring
 from bs4 import BeautifulSoup
+from docx import Document
 
-# 服务器反爬虫机制会判断客户端请求头中的User-Agent是否来源于真实浏览器，所以，我们使用Requests经常会指定UA伪装成浏览器发起请求
+# The server anti-crawling mechanism will determine whether the User-Agent in the client's request header is from a
+# real browser. Therefore, we often use Requests to specify that the UA pretends to be a browser to initiate a request.
 headers = {'user-agent': 'Mozilla/5.0'}
+# template file path
+template_file = "./template/template.docx"
+# output path
+out_put_path = "./output/"
+# job url list file path
+job_list_file = "./job_list/jobs.txt"
 
 
-# https://zhuanlan.zhihu.com/p/90855359
-
-# 获取目标网址第几页
-def getalldoc(ii):
-    # 字符串拼接成目标网址
-    testurl = "https://www.seek.co.nz/job/40700523"
-    # 使用request去get目标网址
-    res = requests.get(testurl, headers=headers)
-    # 更改网页编码--------不改会乱码
-    res.encoding = "utf-8"
-    # 创建一个BeautifulSoup对象
-    soup = BeautifulSoup(res.text, "html.parser")
-
-    job = soup.find('script', {'data-automation': 'server-state'}).string
-    job_info = job.replace(r'\u002F', '/').replace('\n', '').split("window.SK_DL = ")[1]
-    quota_index = job_info.rfind(';');
-    print(job_info[:quota_index] + '');
-
-    job_object = json.loads(job_info[:quota_index] + '');
-    job_location = job_object['jobLocation']
-    job_area = job_object['jobArea']
-    job_title = job_object['jobTitle']
-    job_list_date = timestring.Date(job_object['jobListingDate'])
-    f = "%Y-%m-%dT%H:%M:%S.%fZ"
-    out = datetime.strptime(job_object['jobListingDate'], f)
-    job_date = out.strftime("%d %b %Y")
+def read_job_list_url():
+    job_array = []
+    for job in open(job_list_file, 'r'):
+        job_array.append(job)
+    return job_array
 
 
+def analyze_url(job_array):
+    for job_url in job_array:
+        job_url = job_url.replace('\n', '')
+        res = requests.get(job_url, headers=headers)
+        res.encoding = "utf-8"
+        soup = BeautifulSoup(res.text, "html.parser")
+
+        job = soup.find('script', {'data-automation': 'server-state'}).string
+        job_info = job.replace(r'\u002F', '/').replace('\n', '').split("window.SK_DL = ")[1]
+        quota_index = job_info.rfind(';');
+        print(job_info[:quota_index] + '');
+
+        job_object = json.loads(job_info[:quota_index] + '');
+        job_location = job_object['jobLocation']
+        job_area = job_object['jobArea']
+        job_title = job_object['jobTitle']
+        job_list_date = timestring.Date(job_object['jobListingDate'])
+        f = "%Y-%m-%dT%H:%M:%S.%fZ"
+        out = datetime.strptime(job_object['jobListingDate'], f)
+        job_date = out.strftime("%d %b %Y")
+        job_company = job_object['advertiserName'];
+
+        replace_dict = {
+            "job_title": job_title,
+            "job_date": job_date,
+            "job_company": job_company,
+            "job_area": job_location + " " + job_area
+        }
+
+        save_file(replace_dict)
+
+
+def save_file(replace_dict):
+    doc = Document(template_file)
+    for para in doc.paragraphs:
+        for i in range(len(para.runs)):
+            for key, value in replace_dict.items():
+                if key in para.runs[i].text:
+                    print(key + "-->" + value)
+                    para.runs[i].text = para.runs[i].text.replace(key, value)
+
+    # get apply date
+    apply_time = time.strftime("%Y-%m-%d", time.localtime())
+    apply_company = replace_dict["job_company"]
+
+    new_file_path = out_put_path + apply_time + "/" + apply_company + "/"
+    mkdir(new_file_path)
+
+    doc.save(new_file_path + "Cover letter_Leo Liu.docx")
 
 
 def mkdir(path):
-    # 去除首位空格
     path = path.strip()
-    # 去除尾部 \ 符号
     path = path.rstrip("\\")
-    # 判断路径是否存在
-    # 存在     True
-    # 不存在   False
-    isExists = os.path.exists(path)
-    # 判断结果
-    if not isExists:
-        # 如果不存在则创建目录
-        # 创建目录操作函数
+    if not os.path.exists(path):
         os.makedirs(path)
-        return True
-    else:
-        # 如果目录存在则不创建，并提示目录已存在
-        return False
-
-
-def getall():
-    for i in range(1, 2, 1):
-        getalldoc(i)
 
 
 if __name__ == "__main__":
-    getall()
+    job_list = read_job_list_url()
+    analyze_url(job_list)
