@@ -49,10 +49,11 @@ def analyze_url(job_array):
         job_company = job_object['advertiserName'];
 
         replace_dict = {
-            "job_title": job_title,
-            "job_date": job_date,
-            "job_company": job_company,
-            "job_area": job_location + " " + job_area
+            "job_title": job_title.strip(),
+            "job_date": job_date.strip(),
+            "job_company": job_company.strip(),
+            "job_area": job_area.strip(),
+            "apply_date": time.strftime("%d %b %Y", time.localtime())
         }
 
         save_file(replace_dict)
