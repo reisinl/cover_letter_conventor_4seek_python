@@ -40,7 +40,7 @@ def analyze_url(job_array):
 
         job_object = json.loads(job_info[:quota_index] + '');
         job_location = job_object['jobLocation']
-        job_area = job_object['jobArea']
+        job_area = job_object['jobLocation']
         job_title = job_object['jobTitle']
         job_list_date = timestring.Date(job_object['jobListingDate'])
         f = "%Y-%m-%dT%H:%M:%S.%fZ"
